@@ -30,11 +30,11 @@ for row in range(4,765):
         database[ID] = (name, einsteiger,aussteiger)
 
 #access Goggle Maps API and find latitudes, if two stops have the same latitudes then store in list
-lat = set()
-duplicates = set()
+lat,duplicates = set(), set()
 for key in database.keys():
     location = database.get(key)[0]     
-    url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + location + "&inputtype=textquery&fields=geometry/location/lat&key=AIzaSyCvL1UKhOc3ZWxCF3KGAfB_dqWlwK8i1u0"
+    apikey = open("apikey.txt").read() 
+    url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + location + "&inputtype=textquery&fields=geometry/location/lat&key=" + apikey
     payload, headers = {}, {}
     response = requests.request("GET", url, headers=headers, data=payload)
     y = json.loads(response.text)
