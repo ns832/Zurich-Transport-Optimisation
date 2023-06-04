@@ -17,7 +17,7 @@ conn = psycopg2.connect(
 cur = conn.cursor() 
 cur.execute('DROP TABLE zurich')
 conn.commit()
-cur.execute('CREATE TABLE Zurich (name varchar(255), ID int, einsteiger int, aussteiger int)')
+cur.execute('CREATE TABLE Zurich (Key SERIAL NOT NULL, name varchar(255), ID int, einsteiger float(24), aussteiger float(24), PRIMARY KEY (key))')
 conn.commit()
 
 #get corresponding bus stop names and IDs
@@ -44,42 +44,12 @@ for row in range(4,765):
         conn.commit()
         name = cur.fetchone()[0]
         if not name:
-            print(ID)
             raise Exception
         cur.execute('UPDATE Zurich SET einsteiger = ' + str(einsteiger) + ', aussteiger = ' + str(aussteiger)  + ' WHERE ID = \'' + str(ID)  + '\'')
         conn.commit()
-
-#access Goggle Maps API and find latitudes, if two stops have the same latitudes then store in list
-lat, duplicates = set(), set()
-cur.execute('SELECT (name) FROM "zurich"' )
-conn.commit()
-names = cur.fetchall()
-for name in names:
-    location = name[0]     
-    apikey = open("apikey.txt").read() 
-    url = "https://maps.googleapis.com/maps/api/place/findplacefromtext/json?input=" + location + "&inputtype=textquery&fields=geometry/location/lat&key=" + apikey
-    payload, headers = {}, {}
-    response = requests.request("GET", url, headers=headers, data=payload)
-    y = json.loads(response.text)
-
-    #add duplicate entries to a list, and add ones where a result doesn't appear
-    if not y["candidates"]:
-        duplicates.add(name[0])
-        print('Not Found')
     else:
-        coord = y["candidates"][0]["geometry"]["location"]["lat"]
-        if coord in lat:
-            duplicates.add(name[0])
-            print('Duplicate')
-        lat.add(coord)
-    
-
-#remove entries that google maps doesn't recognise (i.e. will just give 'Adliswil' instead of 'Adliswil, Ahornweg')
-for name in duplicates:  
-    cur.execute('DELETE FROM "zurich" WHERE name = ' + str(name))
-    conn.commit()
-    print(name, "has been deleted")
-
+        cur.execute('DELETE FROM Zurich WHERE ID = \'' + str(ID)  + '\'')
+        conn.commit()
 
 # cur.execute('SELECT COUNT (name) FROM "ZurichData"'  )
 # conn.commit()
